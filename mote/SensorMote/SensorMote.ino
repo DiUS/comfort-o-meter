@@ -103,7 +103,7 @@ int hasMat = 0;
 
 void setup() {
   Serial.begin(9600);
-  Serial1.begin(9600);  // to XBee
+//  Serial1.begin(9600);  // to XBee
   
   // while the serial stream is not open, do nothing.
   //
@@ -202,50 +202,9 @@ void loop() {
     lastSampleTime = millis();
   } 
   
-  // Pressure Mat
-  if ( hasMat ) {
-  
-    // read the state of the switch into a local variable:
-    int reading = digitalRead(butPin);
-
-    // check to see if you just pressed the button 
-    // (i.e. the input went from LOW to HIGH),  and you've waited 
-    // long enough since the last press to ignore any noise:  
-
-    // If the switch changed, due to noise or pressing:
-    if (reading != lastButtonState) {
-      // reset the debouncing timer
-      lastDebounceTime = millis();
-    } 
-    if ((millis() - lastDebounceTime) > debounceDelay) {
-      // whatever the reading is at, it's been there for longer
-      // than the debounce delay, so take it as the actual current state:
-      buttonState = reading;
-      if ( buttonState && !sentPacket ) {
-        total = total + 1;
-        sinceLast = sinceLast + 1;
-
-        Serial.print("state = ");
-        Serial.print( buttonState );
-        Serial.print( ", total = " );
-        Serial.println( total );
-        sentPacket = 1;
-  
-      }  
-    } 
-    digitalWrite(motn_led, buttonState);
- 
-    // save the reading.  Next time through the loop,
-    // it'll be the lastButtonState:
-    if ( lastButtonState != reading ) {
-       sentPacket = 0; 
-    }
-    lastButtonState = reading; 
-  }
-  
   // Check Mesh network for sample rate update
   checkForInput();  
-}  
+}
 
 // GET SAMPLE ------------------------------------------------------------------------------------------------------
 //
@@ -262,8 +221,7 @@ void getSample() {
   int humid = analogRead(hih4030);
   float relative_humid = ((0.0004*temperature + 0.149)*humid)-(0.0617*temperature + 24.436);
 
-  //float altitude = (float)44330 * (1 - pow(((float) pressure/p0), 0.190295));
-  float altitude = bmp.readAltitude(102210);
+  float altitude = bmp.readAltitude(102210); // in metres
 
   // Microphone
   micVal = getSound(); 
@@ -288,6 +246,7 @@ void getSample() {
   Serial.print( light );
   Serial.print( ", A = " );
   Serial.print( altitude );
+  Serial.print( "m" );
   Serial.print( ", Mic = " );
   Serial.print( micVal );
   if ( hasGas ) {
@@ -306,43 +265,43 @@ void getSample() {
     
   }
   
-  if ( hasGas ) {
-     Serial1.print("idigi_data:names=temperature,pressure,humidity,light,altitude,mic,gas&values=");
-  } else if ( hasRF ) {
-      Serial1.print("idigi_data:names=temperature,pressure,humidity,light,altitude,mic,rf&values=");
-  } else if ( hasMat ) {
-      Serial1.print("idigi_data:names=temperature,pressure,humidity,light,altitude,mic,motion,totalmotion&values=");
-  } else {
-     Serial1.print("idigi_data:names=temperature,pressure,humidity,light,altitude,mic&values=");
-  }
-  Serial1.print( temperature );
-  Serial1.print(",");
-  Serial1.print( pressure );
-  Serial1.print(",");
-  Serial1.print( relative_humid );
-  Serial1.print(",");
-  Serial1.print( light );
-  Serial1.print(",");
-  Serial1.print( altitude );
-  Serial1.print(",");
-  Serial1.print( micVal );
-  if ( hasGas ) {
-     Serial1.print(",");
-     Serial1.println( gasValue );
-     Serial1.println("&units=C,Pa,%,Lux,m,X,X");
-  } else if ( hasRF ) {
-     Serial1.print(",");
-     Serial1.println( rfValue );
-     Serial1.println("&units=C,Pa,%,Lux,m,X,X");
-  } else if ( hasMat ) {
-     Serial1.print(",");
-     Serial1.print( sinceLast );
-     Serial1.print(",");
-     Serial1.print( total );
-     Serial1.println("&units=C,Pa,%,Lux,m,X,X,X");
-  } else {
-     Serial1.println("&units=C,Pa,%,Lux,m,X");
-  }
+//  if ( hasGas ) {
+//     Serial1.print("idigi_data:names=temperature,pressure,humidity,light,altitude,mic,gas&values=");
+//  } else if ( hasRF ) {
+//      Serial1.print("idigi_data:names=temperature,pressure,humidity,light,altitude,mic,rf&values=");
+//  } else if ( hasMat ) {
+//      Serial1.print("idigi_data:names=temperature,pressure,humidity,light,altitude,mic,motion,totalmotion&values=");
+//  } else {
+//     Serial1.print("idigi_data:names=temperature,pressure,humidity,light,altitude,mic&values=");
+//  }
+//  Serial1.print( temperature );
+//  Serial1.print(",");
+//  Serial1.print( pressure );
+//  Serial1.print(",");
+//  Serial1.print( relative_humid );
+//  Serial1.print(",");
+//  Serial1.print( light );
+//  Serial1.print(",");
+//  Serial1.print( altitude );
+//  Serial1.print(",");
+//  Serial1.print( micVal );
+//  if ( hasGas ) {
+//     Serial1.print(",");
+//     Serial1.println( gasValue );
+//     Serial1.println("&units=C,Pa,%,Lux,m,X,X");
+//  } else if ( hasRF ) {
+//     Serial1.print(",");
+//     Serial1.println( rfValue );
+//     Serial1.println("&units=C,Pa,%,Lux,m,X,X");
+//  } else if ( hasMat ) {
+//     Serial1.print(",");
+//     Serial1.print( sinceLast );
+//     Serial1.print(",");
+//     Serial1.print( total );
+//     Serial1.println("&units=C,Pa,%,Lux,m,X,X,X");
+//  } else {
+//     Serial1.println("&units=C,Pa,%,Lux,m,X");
+//  }
 
   digitalWrite(loop_led, LOW);
   sinceLast = 0;
@@ -370,27 +329,27 @@ void checkForInput() {
    </data_service>
   </sci_request>
   */
-  if (Serial1.available()) {
-    while (Serial1.available()) {
-      // get the new byte:
-      char inChar = (char)Serial1.read(); 
-      // add it to the inputString:
-      inputString += inChar;
-      // if the incoming character is a close bracket we're done
-      if (inChar == '>') {
-        Serial.print("String received: \"");
-        Serial.print(inputString);
-        Serial.println("\"");
-        if (inputString.indexOf("set_sampling_time=">=0)) {
-          samplingDelay = inputString.substring(inputString.indexOf("set_sampling_time=")+18,inputString.length()-1).toInt();
-          setNumber(samplingDelay);
-          Serial.print("Set Sampling Delay to: ");
-          Serial.println(samplingDelay);
-        }
-        inputString="";
-      } 
-    }
-  }
+//  if (Serial1.available()) {
+//    while (Serial1.available()) {
+//      // get the new byte:
+//      char inChar = (char)Serial1.read(); 
+//      // add it to the inputString:
+//      inputString += inChar;
+//      // if the incoming character is a close bracket we're done
+//      if (inChar == '>') {
+//        Serial.print("String received: \"");
+//        Serial.print(inputString);
+//        Serial.println("\"");
+//        if (inputString.indexOf("set_sampling_time=">=0)) {
+//          samplingDelay = inputString.substring(inputString.indexOf("set_sampling_time=")+18,inputString.length()-1).toInt();
+//          setNumber(samplingDelay);
+//          Serial.print("Set Sampling Delay to: ");
+//          Serial.println(samplingDelay);
+//        }
+//        inputString="";
+//      } 
+//    }
+//  }
 }
 
 // GET SOUND ------------------------------------------------------------------------------------------------------
@@ -414,3 +373,39 @@ int getSound() {
   }
   return envelope;
 }
+
+// retrieve a number from EEPROM
+unsigned long getNumber() {
+  unsigned long ctr;
+  
+  //initial setting of number
+  if (EEPROM.read(5) != 1) { 
+    
+    // if number set status is false
+    Serial.println("Initializing number in EEPROM");
+    EEPROM.write(1,0); // write LSB zero
+    EEPROM.write(2,0); // write 2ndB zero
+    EEPROM.write(3,0); // write 3rdB zero
+    EEPROM.write(4,0); // write MSB zero
+    EEPROM.write(5,1); // counter set status is true
+  }
+  
+  //get the number - add Bytes for 32-bit number
+  ctr = (EEPROM.read(4) << 24) + (EEPROM.read(3) << 16) + (EEPROM.read(2) << 8) + (EEPROM.read(1)); 
+
+  Serial.print("Getting number from EEPROM = ");
+  Serial.println( ctr );
+  return ctr;
+}
+
+// write a number to EEPROM
+void setNumber(unsigned long ctr) {
+  
+  Serial.print("Setting number in EEPROM to = ");
+  Serial.println( ctr );
+  EEPROM.write(4,(ctr & 0xFFFFFFFF) >> 24); // write the MSB
+  EEPROM.write(3,(ctr & 0xFFFFFF) >> 16); // write the 3rdB
+  EEPROM.write(2,(ctr & 0xFFFF) >> 8); // write the 2ndB
+  EEPROM.write(1,ctr & 0xFF); // write the LSB
+}
+
