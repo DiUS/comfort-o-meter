@@ -1,10 +1,14 @@
 
 #include <Wire.h>
 #include <EEPROM.h>
+#include <SoftwareSerial.h>
+#include <XBee.h>
 #include "Adafruit_BMP085.h"
- 
+#include <PString.h>
+
 Adafruit_BMP085 bmp;
- 
+XBee xbee = XBee();
+
 // Google I/O SMD Mote
 
 // Authors: Alasdair Allan <alasdair@babilim.co.uk>, Rob Faludi <ron@faludi.com> and Kipp Bradford <kb@kippworks.com>
@@ -98,26 +102,43 @@ int hasRF = 0;
 int hasGas = 0;
 int hasMat = 0;
 
+void sendInfoPayload(String info) {
+  info.replace('\n', ',');
+  info.replace('\r', ' ');
+  char payload[2+info.length()];
+  payload[0] = 0xf3;  // payload type
+  PString infoString(&payload[1], sizeof(payload)-1);
+  infoString.print(info);
+  
+  // Specify the address of the remote XBee (this is the SH + SL)
+  XBeeAddress64 addr64 = XBeeAddress64(0x0, 0x0); // Coordinator address
+  
+  // Create a TX Request
+  ZBTxRequest zbTx = ZBTxRequest(addr64, (uint8_t *)payload, sizeof(payload));
+  
+  // Send the request
+  xbee.send(zbTx);
+}
 
 // SETUP ------------------------------------------------------------------------------------------------------
 
 void setup() {
   Serial.begin(9600);
-//  Serial1.begin(9600);  // to XBee
-  
+  xbee.setSerial(Serial);
+
   // while the serial stream is not open, do nothing.
   //
   // WARNING: Needs to be removed for production release!!!
   //while (!Serial) ;
-  Serial.println("Initializing...");
+  sendInfoPayload("Initializing...");
 
-  Serial.print("SensorMote (Google I/O) v");
-  Serial.println(CODE_VERSION);
-  
+  char versionBuffer[10];
+  sendInfoPayload("SensorMote (Google I/O) v" + String(dtostrf(CODE_VERSION, 6, 2, versionBuffer)));
+
   pinMode(rfShutdown, INPUT);    // TESTING ONLY. SHOULD BE OUTPUT
   pinMode(BMP085_XCLR, OUTPUT); 
   pinMode(BMP085_EOC, INPUT);    // End of conversion signal
-  
+
   // Pull Down Resistors
   pinMode(butPin, INPUT);      
   pinMode(rfPullDown, INPUT);  
@@ -131,9 +152,9 @@ void setup() {
   pinMode( powr_led, OUTPUT);
   pinMode( loop_led, OUTPUT);
   pinMode( motn_led, OUTPUT);
-  
-  Serial.println("Checking LEDs...");
-  
+
+  sendInfoPayload("Checking LEDs...");
+
   digitalWrite(powr_led, HIGH);  // LED CHECK
   delay(1000);
   digitalWrite(powr_led, LOW);   // LED CHECK
@@ -149,42 +170,44 @@ void setup() {
 
   //get the saved sampling delay from memory
   unsigned long eepromNumber = getNumber();
-  
+
   // ignore a zero value
   if (eepromNumber > 0) {
     samplingDelay = eepromNumber;
   }
-  Serial.print( "Sampling delay = " );
-  Serial.println( samplingDelay );
+  sendInfoPayload( "Sampling delay = " + String(samplingDelay, DEC));
 
-  Serial.println("Setting BMP085_XCLR high");
+  sendInfoPayload("Setting BMP085_XCLR high");
   digitalWrite(BMP085_XCLR, HIGH);  // Make sure BMP085 is on
 
-  Serial.println("Calling bmp085.begin( )");  
+  sendInfoPayload("Calling bmp085.begin( )");  
   bmp.begin(); 
-  
+
   if( digitalRead(rfPullDown) == LOW ) {
-    Serial.println( "RF Sensor circuitry populated");
+    sendInfoPayload( "RF Sensor circuitry populated");
     hasRF = 1;
-  } else {
-    Serial.println( "No RF Sensor circuitry");
+  } 
+  else {
+    sendInfoPayload( "No RF Sensor circuitry");
   }
-  
+
   if( digitalRead(gasPullDown) == LOW ) {
-    Serial.println( "Gas Sensor circuitry populated");
+    sendInfoPayload( "Gas Sensor circuitry populated");
     hasGas = 1;
-  } else {
-    Serial.println( "No Gas Sensor circuitry");
+  } 
+  else {
+    sendInfoPayload( "No Gas Sensor circuitry");
   }
-  
+
   if( digitalRead(butPin) == LOW ) {
-    Serial.println( "Pressure Mat circuitry populated");
+    sendInfoPayload( "Pressure Mat circuitry populated");
     hasMat = 1;
-  } else {
-    Serial.println( "No Pressure Mat circuitry");
+  } 
+  else {
+    sendInfoPayload( "No Pressure Mat circuitry");
   }
   digitalWrite(loop_led, LOW);
-  
+
 }
 
 // LOOP ------------------------------------------------------------------------------------------------------
@@ -201,7 +224,7 @@ void loop() {
     getSample();
     lastSampleTime = millis();
   } 
-  
+
   // Check Mesh network for sample rate update
   checkForInput();  
 }
@@ -225,87 +248,54 @@ void getSample() {
 
   // Microphone
   micVal = getSound(); 
- 
+
   // Gas sensor
   int gasValue;
   int rfValue;
   if ( hasGas ) {
-     gasValue =  analogRead(analogPin);
-  } else if ( hasRF) {
-     rfValue = analogRead(analogPin);
+    gasValue =  analogRead(analogPin);
+  } 
+  else if ( hasRF) {
+    rfValue = analogRead(analogPin);
   }
-    
+
   // Output
-  Serial.print( "T = " );
-  Serial.print( temperature );
-  Serial.print( "C, P = ");
-  Serial.print( pressure );
-  Serial.print( "Pa, H = " );
-  Serial.print( relative_humid );
-  Serial.print( "%, Light = " );
-  Serial.print( light );
-  Serial.print( ", A = " );
-  Serial.print( altitude );
-  Serial.print( "m" );
-  Serial.print( ", Mic = " );
-  Serial.print( micVal );
-  if ( hasGas ) {
-     Serial.print( ", Gas = " );
-     Serial.println( gasValue );
-  } else if ( hasRF ) {
-     Serial.print( ", RF = " );
-     Serial.println( rfValue );
-  } else if ( hasMat ) {
-     Serial.print( ", total motion = " );
-     Serial.print( total );
-     Serial.print( ", since last = " );
-     Serial.println( sinceLast );
-  } else {
-     Serial.println( "" );
-    
-  }
-  
-//  if ( hasGas ) {
-//     Serial1.print("idigi_data:names=temperature,pressure,humidity,light,altitude,mic,gas&values=");
-//  } else if ( hasRF ) {
-//      Serial1.print("idigi_data:names=temperature,pressure,humidity,light,altitude,mic,rf&values=");
-//  } else if ( hasMat ) {
-//      Serial1.print("idigi_data:names=temperature,pressure,humidity,light,altitude,mic,motion,totalmotion&values=");
-//  } else {
-//     Serial1.print("idigi_data:names=temperature,pressure,humidity,light,altitude,mic&values=");
-//  }
-//  Serial1.print( temperature );
-//  Serial1.print(",");
-//  Serial1.print( pressure );
-//  Serial1.print(",");
-//  Serial1.print( relative_humid );
-//  Serial1.print(",");
-//  Serial1.print( light );
-//  Serial1.print(",");
-//  Serial1.print( altitude );
-//  Serial1.print(",");
-//  Serial1.print( micVal );
-//  if ( hasGas ) {
-//     Serial1.print(",");
-//     Serial1.println( gasValue );
-//     Serial1.println("&units=C,Pa,%,Lux,m,X,X");
-//  } else if ( hasRF ) {
-//     Serial1.print(",");
-//     Serial1.println( rfValue );
-//     Serial1.println("&units=C,Pa,%,Lux,m,X,X");
-//  } else if ( hasMat ) {
-//     Serial1.print(",");
-//     Serial1.print( sinceLast );
-//     Serial1.print(",");
-//     Serial1.print( total );
-//     Serial1.println("&units=C,Pa,%,Lux,m,X,X,X");
-//  } else {
-//     Serial1.println("&units=C,Pa,%,Lux,m,X");
-//  }
+//  Serial.print( "T = " );
+//  Serial.print( temperature );
+//  Serial.print( "C, P = ");
+//  Serial.print( pressure );
+//  Serial.print( "Pa, H = " );
+//  Serial.print( relative_humid );
+//  Serial.print( "%, Light = " );
+//  Serial.print( light );
+//  Serial.print( ", A = " );
+//  Serial.print( altitude );
+//  Serial.print( "m" );
+//  Serial.print( ", Mic = " );
+//  Serial.print( micVal );
+//  Serial.print( ", Gas = " );
+//  Serial.println( gasValue );
+
+  // Send readings to the ZigBee coordinator
+  char buffer[10];
+  String readings = "names=temp,pressure,humidity,light,altitude,mic,gas&values=";
+  readings += temperature;
+  readings += ",";
+  readings += pressure;
+  readings += ",";
+  readings += dtostrf(relative_humid, 6, 2, buffer);
+  readings += ",";
+  readings += light;
+  readings += ",";
+  readings += dtostrf(altitude, 6, 2, buffer);
+  readings += ",";
+  readings += micVal;
+  readings += ",";
+  readings += gasValue;
+  sendInfoPayload(readings);
 
   digitalWrite(loop_led, LOW);
   sinceLast = 0;
-  
 }
 
 // CHECK FOR INPUT ------------------------------------------------------------------------------------------------------
@@ -313,43 +303,6 @@ void getSample() {
 // Checks for configuration updates over the XBee network
 
 void checkForInput() {
-  //Serial.println( "Checking for Input from Mesh Network" );
-  /*
-  Send the following type of command as a POST from iDigi to set the sampling time:
-  <sci_request version="1.0">
-   <data_service>
-    <targets>
-      <device id="00000000-00000000-00409DFF-FF521DBA"/>
-    </targets>
-    <requests>
-      <device_request target_name="xig">
-        &lt;send_data hw_address="00:13:A2:00:40:A2:0C:62!"&gt;set_sampling_time=20000>&lt;/send_data&gt;
-      </device_request>
-    </requests>
-   </data_service>
-  </sci_request>
-  */
-//  if (Serial1.available()) {
-//    while (Serial1.available()) {
-//      // get the new byte:
-//      char inChar = (char)Serial1.read(); 
-//      // add it to the inputString:
-//      inputString += inChar;
-//      // if the incoming character is a close bracket we're done
-//      if (inChar == '>') {
-//        Serial.print("String received: \"");
-//        Serial.print(inputString);
-//        Serial.println("\"");
-//        if (inputString.indexOf("set_sampling_time=">=0)) {
-//          samplingDelay = inputString.substring(inputString.indexOf("set_sampling_time=")+18,inputString.length()-1).toInt();
-//          setNumber(samplingDelay);
-//          Serial.print("Set Sampling Delay to: ");
-//          Serial.println(samplingDelay);
-//        }
-//        inputString="";
-//      } 
-//    }
-//  }
 }
 
 // GET SOUND ------------------------------------------------------------------------------------------------------
@@ -377,35 +330,34 @@ int getSound() {
 // retrieve a number from EEPROM
 unsigned long getNumber() {
   unsigned long ctr;
-  
+
   //initial setting of number
   if (EEPROM.read(5) != 1) { 
-    
+
     // if number set status is false
-    Serial.println("Initializing number in EEPROM");
+    sendInfoPayload("Initializing number in EEPROM");
     EEPROM.write(1,0); // write LSB zero
     EEPROM.write(2,0); // write 2ndB zero
     EEPROM.write(3,0); // write 3rdB zero
     EEPROM.write(4,0); // write MSB zero
     EEPROM.write(5,1); // counter set status is true
   }
-  
+
   //get the number - add Bytes for 32-bit number
   ctr = (EEPROM.read(4) << 24) + (EEPROM.read(3) << 16) + (EEPROM.read(2) << 8) + (EEPROM.read(1)); 
 
-  Serial.print("Getting number from EEPROM = ");
-  Serial.println( ctr );
+  sendInfoPayload("Getting number from EEPROM = " + String(ctr, DEC));
   return ctr;
 }
 
 // write a number to EEPROM
 void setNumber(unsigned long ctr) {
-  
-  Serial.print("Setting number in EEPROM to = ");
-  Serial.println( ctr );
+
+  sendInfoPayload("Setting number in EEPROM to = " + ctr);
   EEPROM.write(4,(ctr & 0xFFFFFFFF) >> 24); // write the MSB
   EEPROM.write(3,(ctr & 0xFFFFFF) >> 16); // write the 3rdB
   EEPROM.write(2,(ctr & 0xFFFF) >> 8); // write the 2ndB
   EEPROM.write(1,ctr & 0xFF); // write the LSB
 }
+
 
