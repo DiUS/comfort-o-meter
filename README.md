@@ -6,4 +6,4 @@ The IoT SIG project to monitor office environmental data. See the [wiki page](ht
 Ideas for improvement
 ---------------------
 * Find out the daily actual local atmospheric pressure at sea level and use that to get a more accurate reading of altitude.
-* Use Protocol Buffers (or similar header-based cross-platform message definition mechanism) to encode and decode the message over ZigBee more efficiently.
+* Use [Protocol Buffers](http://code.google.com/p/protobuf/) (or similar header-based cross-platform message definition mechanism) to encode and decode the message over ZigBee more efficiently.
