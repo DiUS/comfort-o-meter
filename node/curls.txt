@@ -1,0 +1,23 @@
+curl --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/scopes/pda-iot-bar
+
+curl --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/scopes/pda-iot-bar/keys
+
+curl --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/collections
+["c001"]
+
+curl --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/collections/c001
+{"guid":"c001","feeds":["061b48fbc8681bac6da90bf158b98cb3"],"sources":["061b48fbc8681bac6da90bf158b98cb3"]}
+
+$ curl --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/feeds
+["061b48fbc8681bac6da90bf158b98cb3"]
+
+$ curl --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/sources
+["061b48fbc8681bac6da90bf158b98cb3"]
+
+$ curl --data-binary @padlock.png -X POST "Content-Type: application/octet-stream" --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt https://au.intelligent.li/api/v1/sources/c001/s001/blobs/15/1
+{"feed":"061b48fbc8681bac6da90bf158b98cb3"}
+
+$ curl --data-binary @padlock.png -X POST -H "Content-Type: application/octet-stream" --cert 08283b6b-1d35-432a-9a13-86
+f3aaba90c4.pem --cacert ca.crt https://au.intelligent.li/api/v1/sources/c001/s002/blobs/15/1
+{"feed":"c6b863aaf8851413b48fb9c2616c7644"}
+

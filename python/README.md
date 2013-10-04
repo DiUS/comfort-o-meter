@@ -3,11 +3,6 @@ comfort-o-meter
 
 The IoT SIG project to monitor office environmental data. See the [wiki page](https://github.com/DiUS/comfort-o-meter/wiki) for setup details.
 
-Two examples
-
-* pyhton - python based gateaway and mote code
-* node -  node.js based gateaway and mote code
-
 Ideas for improvement
 ---------------------
 * Improve the accuracy of the altitude reading by finding out the daily actual local atmospheric pressure at sea level and use that instead of using a hard-coded assumed value.
