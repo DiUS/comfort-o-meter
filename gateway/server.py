@@ -18,7 +18,6 @@ xbee = ZigBee(ser, escaped=True)
 
 # Set up the Intelligent.li FIFO writer
 ilififowriter.init_fifo('/dev/mmcblk0p6')
-collectionID = 'sensorMotes'
 
 # Continuously listen for sensor mote packets and send them to Intelligent.li
 print 'Continuously read packets and send them to Intelligent.li'
@@ -31,13 +30,14 @@ while True:
 			sensorString = response['rf_data'][1:]
 			print 'info received from ' + sourceAddress + ': ' + sensorString
 			sampleTimestamp = int(time.time())
-			deviceID = response['source_addr_long']
+			deviceID = int(sourceAddress, 16)
+			collectionID = deviceID
 			# parse the string we received from the sensor mote
 			names = sensorString.split("&")[0].split("=")[1].split(",")
 			values = sensorString.split("&")[1].split("=")[1].split(",")
 			for idx, val in enumerate(names):
 				sensorID = val
-				sensorValue = float(values[idx].strip(' '))
+				sensorValue = float(filter( lambda x: x in '0123456789.', values[idx])) # cleaning up any funny non-numeric chars
 				print 'storing: ' + sensorID + '=' + '%f' % sensorValue
 				ilififowriter.store_sample(sampleTimestamp, collectionID, deviceID, sensorID, sensorValue)
 		else:
