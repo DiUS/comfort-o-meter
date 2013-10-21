@@ -21,3 +21,6 @@ $ curl --data-binary @padlock.png -X POST -H "Content-Type: application/octet-st
 f3aaba90c4.pem --cacert ca.crt https://au.intelligent.li/api/v1/sources/c001/s002/blobs/15/1
 {"feed":"c6b863aaf8851413b48fb9c2616c7644"}
 
+$ curl -v -X POST --cert pki/cert.pem --cacert pki/ca.crt --key pki/key.pem https://au.intelligent.li/api/v1/sources/c0
+01/s002/samples/15/1/-12
+{"result":"ok"}

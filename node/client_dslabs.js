@@ -1,38 +1,21 @@
 var https = require('https');
 var fs = require('fs');
 var sp = require("serialport"); 
+Ili = require ('./Ili.js')
 
 var args = process.argv.splice(2)
 var sample_index = parseInt(args[0],10)
-var serial_port = args[2]
+var serial_port = args[1]
+
+console.log(sample_index)
+var previous_index = parseInt(fs.readFileSync('data/index.ini'))
+console.log(previous_index)
+sample_index = previous_index
+console.log(sample_index)
 
 var tempRegex = '[0-9].*\.[0-9][^:]'
 
-/*
-  Setup HTTPS options
-*/
-var options = {
-  hostname: 'au.intelligent.li',
-  port: 443,
-  path: "",
-  method: 'POST',
-  key: fs.readFileSync('pki/key.pem'),
-  cert: fs.readFileSync('pki/cert.pem'),
-  ca: fs.readFileSync('pki/ca.crt'),
-  headers: {'Content-Type': 'application/octet-stream'},
-  secureProtocol:  'SSLv3_method',
-  agent: false
-};
-
-
-response_handler = function(res) {
-  //console.log("statusCode: ", res.statusCode);
-  //console.log("headers: ", res.headers);
-
-  res.on('data', function(data) {
-    console.log(data);
-  });
-}
+var ili = new Ili('pki/key.pem', 'pki/cert.pem', 'pki/ca.crt', 'c001', 's002', '15', sample_index )
 
 var readingPrefix = new RegExp('[a-zA-Z]*=');
 
@@ -49,6 +32,10 @@ process_data = function(data) {
   //
   var readings = data.split('|')
 
+  // create datum filename
+  var currentTime = Date.now();
+  var fileName =  "data/iot-" + currentTime + ".log";
+
   var jsonStr = "{"
   jsonStr += "temperature:" + readings[0].replace(readingPrefix,'') + ","
   jsonStr += "pressure:" + readings[1].replace(readingPrefix,'') + ","
@@ -62,36 +49,26 @@ process_data = function(data) {
 
   console.log(jsonStr);
 
-  // create datum filename
-  var currentTime = Date.now();
-  var fileName =  "data/iot-" + currentTime + ".log";
-
   fs.writeFile(fileName, jsonStr, function (err) {
     if (err) throw err;
 
-  //console.log(fileName + ' saved!');
 
-  // Upload data file to next data point
-  // See : Documentation
-  // http://intelligent-li.dius.com.au/documentation/29/sources-rest/
-  // Uses i.li API 
-  //  /api/v1/sources/<collection>/<sensor>/blobs/<alignment>/<index>
-  //
-  var options.path = '/api/v1/sources/c001/s002/blobs/15/' + sample_index;
-  sample_index++;
+  //ili.send_reading(fileName)
+  ili.send_all_sensors(readings[0].replace(readingPrefix,''),
+                      readings[1].replace(readingPrefix,''),
+                      readings[2].replace(readingPrefix,''),
+                      readings[3].replace(readingPrefix,''),
+                      readings[4].replace(readingPrefix,''),
+                      readings[5].replace(readingPrefix,''),
+                      readings[6].replace(readingPrefix,''),
+                      currentTime.toString(),
+                      '-37.812445',
+                      '144.970913')
 
-  var req = https.request(options, response_handler);
-  req.on('error', function(e) {
-        console.log('********* ERROR ************')
-        console.error(e);
-    });
+  fs.writeFile('data/index.ini', ili.sample_index.toString(), function(err) {
+    if (err) throw err;
+    })
 
-
-  console.log("sending to " + options.path + ": " + fileName);
-  req.write(fs.readFileSync(fileName));
-  req.end();
-
-  // delete data file
   fs.unlink(fileName, function(err) {
     if (err) throw err;
     });
@@ -102,14 +79,14 @@ process_data = function(data) {
 /*
   List all serial ports available on start up
 */
-sp.list(function (err, ports) {
+/*sp.list(function (err, ports) {
 //  console.log('XXXXXXXXXXXXXXXXXXXXXXXXXX')
   ports.forEach(function(port) {
     console.log(port.comName);
     console.log(port.pnpId);
     console.log(port.manufacturer);
   });
-});
+});*/
 
 /*
   1. Set up serial port
@@ -132,4 +109,7 @@ com.open(function () {
     console.log('results ' + results);
   });  
 });
+
+
+//process_data('"T=32|P=98985|H=30.54|Light=46|A=269.22|Mic=6|Gas=140"')
 
