@@ -1,4 +1,3 @@
-Stuff = require('./stuff.js')
 var sp = require("serialport");	
 
 
@@ -10,6 +9,3 @@ sp.list(function (err, ports) {
     console.log(port.manufacturer);
   });
 });
-
-var st = new Stuff('stuff')
-st.doit('xxx 111 222')

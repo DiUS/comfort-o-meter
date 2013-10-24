@@ -34,7 +34,6 @@ function Ili(keyFile, certFile, caFile, collection, sensor, increment, sample_in
 }
 
 Ili.prototype.response_handler = function(res) {
-  console.log("url: ", res.message);
   console.log("statusCode: ", res.statusCode);
   console.log("headers: ", res.headers);
   
@@ -51,6 +50,13 @@ Ili.prototype.response_handler = function(res) {
 }
 
 
+/*
+  * Send sensor reading using the intelligent.li REST API for BLOB updates
+  * 
+  * The sensor reading is a blob with a precision of 4 demial places
+  * Uses - /api/v1/sources/<collection>/<sensor>/samples/<increment>/<index>/<sample value>
+  *
+ */
 Ili.prototype.send_blob_reading = function(fileName) {
   this.options.method = 'POST'
   this.headers = {'Content-Type': 'application/octet-stream'}
@@ -62,7 +68,7 @@ Ili.prototype.send_blob_reading = function(fileName) {
   req.on('error', function(e) {
         console.log('********* ERROR ************')
         console.error(e)
-    })
+  })
 
 
   console.log("sending to " + this.options.path + ": " + fileName)
@@ -74,12 +80,17 @@ Ili.prototype.next_sample = function() {
   this.sample_index++;
 }
 
+/*
+  * Send sensor reading using the intelligent.li REST API for sample updates
+  * 
+  * The sensor reading is a number with a precision of 4 demial places
+  * Uses - /api/v1/sources/<collection>/<sensor>/samples/<increment>/<index>/<sample value>
+  *
+ */
 Ili.prototype.send_sensor = function(sensorX, reading) {
   this.options.method = 'POST'
   this.headers = {'Content-Type': 'application/json'}
   this.options.path = '/api/v1/sources/' + this.collection + '/'+ sensorX +'/samples/' + this.increment + '/' + this.sample_index + '/' + parseFloat(reading).toFixed(4)
-//  this.options.path = '/api/v1/sources/c001/s002/blobs/15/' + this.sample_index;
-//  this.sample_index++;
 
   var req = https.request(this.options, this.response_handler)
   req.on('error', function(e) {
@@ -94,7 +105,7 @@ Ili.prototype.send_sensor = function(sensorX, reading) {
   req.end()
 }
 
-Ili.prototype.send_all_sensors = function(temperature, pressure, relative_humidity, light, altitude, sound, gas, time, lattitude, longitude) {
+Ili.prototype.send_all_sensors = function(temperature, pressure, relative_humidity, light, altitude, sound, gas, time) {
   this.send_sensor('temperature', temperature)
   this.send_sensor('pressure', pressure)
   this.send_sensor('relative_humidity', relative_humidity)
@@ -102,9 +113,6 @@ Ili.prototype.send_all_sensors = function(temperature, pressure, relative_humidi
   this.send_sensor('altitude', altitude)
   this.send_sensor('sound', sound)
   this.send_sensor('gas', gas)
-  //this.send_sensor('time', time)
-  this.send_sensor('lattitude', lattitude)
-  this.send_sensor('longitude', longitude)
   this.next_sample()  
 }
 

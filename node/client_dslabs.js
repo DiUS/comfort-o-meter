@@ -32,6 +32,9 @@ process_data = function(data) {
   //
   var readings = data.split('|')
 
+  if (readings.length < 7)
+    return;
+
   // create datum filename
   var currentTime = Date.now();
   var fileName =  "data/iot-" + currentTime + ".log";
@@ -49,11 +52,14 @@ process_data = function(data) {
 
   console.log(jsonStr);
 
+/*
   fs.writeFile(fileName, jsonStr, function (err) {
     if (err) throw err;
 
+  });
+*/
 
-  //ili.send_reading(fileName)
+
   ili.send_all_sensors(readings[0].replace(readingPrefix,''),
                       readings[1].replace(readingPrefix,''),
                       readings[2].replace(readingPrefix,''),
@@ -61,19 +67,18 @@ process_data = function(data) {
                       readings[4].replace(readingPrefix,''),
                       readings[5].replace(readingPrefix,''),
                       readings[6].replace(readingPrefix,''),
-                      currentTime.toString(),
-                      '-37.812445',
-                      '144.970913')
+                      currentTime.toString())
 
   fs.writeFile('data/index.ini', ili.sample_index.toString(), function(err) {
     if (err) throw err;
     })
 
+/*
   fs.unlink(fileName, function(err) {
     if (err) throw err;
     });
+*/
 
-  });
 }
 
 /*
@@ -101,7 +106,7 @@ com.open(function () {
   console.log('open');
   com.on('data', function(data) {
  //   console.log('data received: ' + data);
-    console.log('\n');
+ //   console.log('\n');
     process_data(data)
   });  
   com.write("ls\n", function(err, results) {
