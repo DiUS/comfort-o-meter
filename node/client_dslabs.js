@@ -16,7 +16,7 @@ console.log(sample_index)
 
 var tempRegex = '[0-9].*\.[0-9][^:]'
 
-var ili = new Ili('pki/key.pem', 'pki/cert.pem', 'pki/ca.crt', 'c001', 's002', '15', sample_index,  collection)
+var ili = new Ili('pki/key.pem', 'pki/cert.pem', 'pki/ca.crt', collection, 's002', '15', sample_index,  collection)
 
 var readingPrefix = new RegExp('[a-zA-Z]*=');
 

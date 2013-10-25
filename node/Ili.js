@@ -12,12 +12,12 @@ function Ili(keyFile, certFile, caFile, collection, sensor, increment, sample_in
   this.headers = {}
   this.secureProtocol =  'SSLv3_method'
   this.agent = false
-  this.feedPrefix = feedPrefix
+  this.collection = collection
  
   this.sensor = sensor
   this.increment = increment
   this.sample_index = sample_index
-  this.collection = collection
+  this.feedPrefix = feedPrefix
 
   this.options = {
 	  hostname: this.hostname,
