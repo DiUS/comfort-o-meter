@@ -1,7 +1,7 @@
 var https = require('https')
 var fs = require('fs')
 
-function Ili(keyFile, certFile, caFile, collection, sensor, increment, sample_index) {
+function Ili(keyFile, certFile, caFile, collection, sensor, increment, sample_index, feedPrefix) {
   this.hostname = 'au.intelligent.li'
   this.port = 443
   this.path = ''
@@ -12,6 +12,7 @@ function Ili(keyFile, certFile, caFile, collection, sensor, increment, sample_in
   this.headers = {}
   this.secureProtocol =  'SSLv3_method'
   this.agent = false
+  this.feedPrefix = feedPrefix
  
   this.sensor = sensor
   this.increment = increment
@@ -60,7 +61,7 @@ Ili.prototype.response_handler = function(res) {
 Ili.prototype.send_blob_reading = function(fileName) {
   this.options.method = 'POST'
   this.headers = {'Content-Type': 'application/octet-stream'}
-  this.options.path = '/api/v1/sources/' + this.collection + '/'+ this.sensor +'/blobs/' + this.increment + '/' + this.sample_index
+  this.options.path = '/api/v1/sources/' + this.collection + '/'+ this.feedPrefix + '-' + this.sensor +'/blobs/' + this.increment + '/' + this.sample_index
 //  this.options.path = '/api/v1/sources/c001/s002/blobs/15/' + this.sample_index;
   this.sample_index++;
 

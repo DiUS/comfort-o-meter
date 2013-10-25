@@ -24,3 +24,11 @@ f3aaba90c4.pem --cacert ca.crt https://au.intelligent.li/api/v1/sources/c001/s00
 $ curl -v -X POST --cert pki/cert.pem --cacert pki/ca.crt --key pki/key.pem https://au.intelligent.li/api/v1/sources/c0
 01/s002/samples/15/1/-12
 {"result":"ok"}
+
+----
+
+$ curl -v X POST --cert pki/cert.pem --cacert pki/ca.crt --key pki/key.pem https://au.intelligent.li/api/v1/sources/pda
+001/register/samples/15/1/1.0000
+
+$ curl -v --cert pki/cert.pem --cacert pki/ca.crt --key pki/key.pem https://au.intelligent.li/api/v1/sources/pda001/register
+{"source":"a659397d40b895bbab77bed002b41122","collection":"pda001","sensor":"register"}
