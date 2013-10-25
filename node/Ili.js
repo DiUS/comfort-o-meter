@@ -91,7 +91,7 @@ Ili.prototype.next_sample = function() {
 Ili.prototype.send_sensor = function(sensorX, reading) {
   this.options.method = 'POST'
   this.headers = {'Content-Type': 'application/json'}
-  this.options.path = '/api/v1/sources/' + this.collection + '/'+ sensorX +'/samples/' + this.increment + '/' + this.sample_index + '/' + parseFloat(reading).toFixed(4)
+  this.options.path = '/api/v1/sources/' + this.collection + '/'+ this.feedPrefix + '-' + sensorX +'/samples/' + this.increment + '/' + this.sample_index + '/' + parseFloat(reading).toFixed(4)
 
   var req = https.request(this.options, this.response_handler)
   req.on('error', function(e) {
