@@ -6,6 +6,7 @@ Ili = require ('./Ili.js')
 var args = process.argv.splice(2)
 var sample_index = parseInt(args[0],10)
 var serial_port = args[1]
+var collection = args[2]
 
 console.log(sample_index)
 var previous_index = parseInt(fs.readFileSync('data/index.ini'))
@@ -15,7 +16,7 @@ console.log(sample_index)
 
 var tempRegex = '[0-9].*\.[0-9][^:]'
 
-var ili = new Ili('pki/key.pem', 'pki/cert.pem', 'pki/ca.crt', 'c001', 's002', '15', sample_index )
+var ili = new Ili('pki/key.pem', 'pki/cert.pem', 'pki/ca.crt', 'c001', 's002', '15', sample_index,  collection)
 
 var readingPrefix = new RegExp('[a-zA-Z]*=');
 
