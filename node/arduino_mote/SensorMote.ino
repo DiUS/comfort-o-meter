@@ -71,7 +71,7 @@ const int analogPin = A3;
 short temperature;
 long pressure;
 const float p0 = 101325;             // Pressure at sea level (Pa)float altitude;
-unsigned long samplingDelay = 20000; // default sampling delay in millis (SUPERCEDED BY ANYTHING STORED IN EEPROM)
+unsigned long samplingDelay = 15000; // default sampling delay in millis (SUPERCEDED BY ANYTHING STORED IN EEPROM)
 unsigned long lastSampleTime = 0;
 int micVal = 0;
 int motionState = 0;

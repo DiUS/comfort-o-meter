@@ -10,5 +10,8 @@ Usage
 * Requires:
    node-serialport module - see (https://github.com/voodootikigod/node-serialport)
 
+* Uses:
+   Uses i.li direct Sample posting [API] (http://intelligent-li.dius.com.au/documentation/29/sources-rest/) 
+
 * Pardon:
    The js code quality

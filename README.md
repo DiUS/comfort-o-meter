@@ -5,8 +5,8 @@ The IoT SIG project to monitor office environmental data. See the [wiki page](ht
 
 Two examples
 
-* pyhton - python based gateaway and mote code
-* node -  node.js based gateaway and mote code
+* python - python-based gateway and mote code
+* node - node.js-based gateway and mote code
 
 Ideas for improvement
 ---------------------
