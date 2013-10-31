@@ -1,0 +1,57 @@
+Sensormote ID = 0013a20040a9346c, 0013a20040a9340b
+
+Sensor IDs for 0013a20040a9346c
+-------------------------------
+temperature: 0013a20040a9346c0013a20040a9346c-temperature (feed 8c3e23b1f5cbd2a207960a31a7ea6e7b)
+humidity: 0013a20040a9346c0013a20040a9346c-relative_humidity (feed 29699d18190da997e60d90a2b766e375)
+pressure: 0013a20040a9346c0013a20040a9346c-pressure (feed 12ee541c51bc542016527a5233fa7a80)
+gas: 0013a20040a9346c0013a20040a9346c-gas (feed b625d29194aebee42bcca9bf0095c435)
+sound: 0013a20040a9346c0013a20040a9346c-sound (feed 86f5dcf01184106e6dd0b498ba8a9c73)
+
+// add a reading
+curl -X POST --cert pki/cert.pem --cacert pki/ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/sources/<collection>/<sensor>/samples/15/<sequence>/<reading>
+<collection> = XBee device id
+<sensor> = <collection>-<sensor name>
+collection = 0013a20040a9346c
+sensor = 0013a20040a9346c-temperature
+
+// list collections (devices)
+curl https://au.intelligent.li/api/v1/collections --cert cert.pem --caCert ca.crt
+
+// list feeds for a device
+curl https://au.intelligent.li/api/v1/collections/0013a20040a9346c --cert cert.pem --caCert ca.crt
+
+
+// list readings for a device
+curl -X GET https://au.intelligent.li/api/v1/feeds/8c3e23b1f5cbd2a207960a31a7ea6e7b/samples --cert cert.pem --caCert ca.crt
+curl -X GET https://au.intelligent.li/api/v1/feeds/29699d18190da997e60d90a2b766e375/samples --cert cert.pem --caCert ca.crt
+
+
+
+===============================================================================================================================
+
+
+curl --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/scopes/pda-iot-bar
+curl --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/scopes/pda-iot-bar/keys
+curl --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/collections
+["c001"]
+
+curl --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/collections/c001
+{"guid":"c001","feeds":["061b48fbc8681bac6da90bf158b98cb3"],"sources":["061b48fbc8681bac6da90bf158b98cb3"]}
+
+$ curl --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/feeds
+["061b48fbc8681bac6da90bf158b98cb3"]
+
+$ curl --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt -H "Content-Type: application/json" https://au.intelligent.li/api/v1/sources
+["061b48fbc8681bac6da90bf158b98cb3"]
+
+$ curl --data-binary @padlock.png -X POST "Content-Type: application/octet-stream" --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt https://au.intelligent.li/api/v1/sources/c001/s001/blob$
+{"feed":"061b48fbc8681bac6da90bf158b98cb3"}
+
+$ curl --data-binary @padlock.png -X POST -H "Content-Type: application/octet-stream" --cert 08283b6b-1d35-432a-9a13-86f3aaba90c4.pem --cacert ca.crt https://au.intelligent.li/api/v1/sources/c001/s002/blobs/15/1
+{"feed":"c6b863aaf8851413b48fb9c2616c7644"}
+
+$ curl -v -X POST --cert pki/cert.pem --cacert pki/ca.crt --key pki/key.pem https://au.intelligent.li/api/v1/sources/c001/s002/samples/15/1/-12
+{"result":"ok"}
+
+
