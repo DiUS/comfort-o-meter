@@ -1,3 +1,10 @@
+/*******************************************************************************/
+
+var serialPortName = "/dev/ttyUSB0";
+
+/*******************************************************************************/
+
+
 var util = require('util');
 var SerialPort = require('serialport').SerialPort;
 var xbee_api = require('xbee-api/lib/xbee-api.js');
@@ -13,7 +20,7 @@ var xbeeAPI = new xbee_api.XBeeAPI({
 /** 
  * Initialise and open the serial port that communicates with the XBee module
  */
-var serialport = new SerialPort("/dev/ttyUSB0", { 
+var serialport = new SerialPort(serialPortName, { 
   baudrate: 9600, 
   parser: xbeeAPI.rawParser()
 });
@@ -72,7 +79,6 @@ function insertReading(collection, frameData)
   var sample_index = calculate_sample_index(new Date(), 15);  
   var ili = new Ili('pki/key.pem', 'pki/cert.pem', 'pki/ca.crt', collection, 'sensor', '15', sample_index );
   ili.send_all_sensors(collection, values[0], values[1], values[2], values[3], values[4], values[5], values[6], new Date().toString());
-  console.log("should be done");
 }
 
 
