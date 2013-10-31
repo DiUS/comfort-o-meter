@@ -105,14 +105,14 @@ Ili.prototype.send_sensor = function(sensorX, reading) {
   req.end()
 }
 
-Ili.prototype.send_all_sensors = function(temperature, pressure, relative_humidity, light, altitude, sound, gas, time) {
-  this.send_sensor('temperature', temperature)
-  this.send_sensor('pressure', pressure)
-  this.send_sensor('relative_humidity', relative_humidity)
-  this.send_sensor('light', light)
-  this.send_sensor('altitude', altitude)
-  this.send_sensor('sound', sound)
-  this.send_sensor('gas', gas)
+Ili.prototype.send_all_sensors = function(collection, temperature, pressure, relative_humidity, light, altitude, sound, gas, time) {
+  this.send_sensor(collection+'-temperature', temperature)
+  this.send_sensor(collection+'-pressure', pressure)
+  this.send_sensor(collection+'-relative_humidity', relative_humidity)
+  this.send_sensor(collection+'-light', light)
+  this.send_sensor(collection+'-altitude', altitude)
+  this.send_sensor(collection+'-sound', sound)
+  this.send_sensor(collection+'-gas', gas)
   this.next_sample()  
 }
 
